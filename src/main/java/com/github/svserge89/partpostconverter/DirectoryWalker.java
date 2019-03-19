@@ -44,16 +44,16 @@ public class DirectoryWalker {
 //        fileList.forEach(System.out::println);
         if (fileList.isEmpty()) {
             throw new IOException(inputDirectory +
-                    "is not contain correct files");
+                    " is not contain correct files");
         }
     }
 
     private void checkInputDirectory() throws IOException {
         if (!Files.exists(inputDirectory)) {
-            throw new IOException(inputDirectory + "is not exist");
+            throw new IOException(inputDirectory + " is not exist");
         }
         if (!Files.isDirectory(inputDirectory)) {
-            throw new IOException(inputDirectory + "is not a directory");
+            throw new IOException(inputDirectory + " is not a directory");
         }
     }
 
