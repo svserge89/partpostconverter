@@ -32,7 +32,8 @@ public class FileConverter {
         StringBuilder result = new StringBuilder();
         try {
             lineCorrector(lines, result);
-        } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException exception) {
+        } catch (ArrayIndexOutOfBoundsException |
+                IllegalArgumentException exception) {
             throw new IOException(path + " is incorrect file", exception);
         }
         return result.toString();
@@ -64,6 +65,8 @@ public class FileConverter {
                     for (j = 0; j < tokens.length; ++j) {
                         fixedTokens[j] = tokens[j];
                     }
+
+                    fixedTokens[j - 1] = fixedTokens[j - 1] + " " + nextLineTokens[0];
 
                     for (int k = 1; k < nextLineTokens.length &&
                             j < fixedTokens.length; ++k, ++j) {
