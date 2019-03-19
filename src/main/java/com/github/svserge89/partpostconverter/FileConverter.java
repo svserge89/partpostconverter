@@ -18,6 +18,7 @@ public class FileConverter {
     private Path path;
     private RegionResolver regionResolver;
     private int defaultPostOfficeNumber;
+    private int tokensLength = 0;
 
     public FileConverter(Path path, RegionResolver regionResolver,
                          int defaultPostOfficeNumber) {
@@ -30,36 +31,75 @@ public class FileConverter {
         List<String> lines = Files.readAllLines(path, CP_866);
         StringBuilder result = new StringBuilder();
         try {
-            lines.forEach(line -> lineCorrector(line, result));
+            lineCorrector(lines, result);
         } catch (ArrayIndexOutOfBoundsException exception) {
             throw new IOException(path + " is incorrect file", exception);
         }
         return result.toString();
     }
 
-    private void lineCorrector(String line, StringBuilder result) {
-        if (line.startsWith("Barcode")) {
-            result.append(line);
-        } else {
+    private void lineCorrector(List<String> lines, StringBuilder result) {
+        for (int i = 0; i < lines.size(); ++i) {
+            String line = lines.get(i);
             String[] tokens = line.split(REGEX, -1);
 
-            int postOfficeIndex = Integer.parseInt(tokens[POST_OFFICE_INDEX]);
-
-            if (regionResolver.isCorrectPostOffice(postOfficeIndex)) {
-                tokens[REGION_INDEX] =
-                        regionResolver.getRegion(postOfficeIndex);
+            if (line.startsWith("Barcode")) {
+                result.append(line);
+                tokensLength = tokens.length;
             } else {
-                tokens[POST_OFFICE_INDEX] =
-                        Integer.toString(defaultPostOfficeNumber);
-                tokens[REGION_INDEX] =
-                        regionResolver.getRegion(defaultPostOfficeNumber);
-            }
+                while (tokens.length < tokensLength) {
+                    String nextLine = lines.get(++i);
+                    while (nextLine.trim().isEmpty()) {
+                        nextLine = lines.get(++i);
+                    }
+                    String[] nextLineTokens = nextLine.split(REGEX, -1);
+                    int fixedLineSize =
+                            tokens.length + nextLineTokens.length - 1;
+                    if (fixedLineSize > tokensLength) {
+                        throw new IllegalArgumentException("Can't parse file");
+                    }
+                    String[] fixedTokens = new String[fixedLineSize];
+                    int j;
 
-            String changedLine = String.join(DELIMITER,
-                    Arrays.asList(tokens));
-            result.append(changedLine);
+                    for (j = 0; j < tokens.length; ++j) {
+                        fixedTokens[j] = tokens[j];
+                    }
+
+                    for (int k = 1; k < nextLineTokens.length &&
+                            j < fixedTokens.length; ++k, ++j) {
+                        fixedTokens[j] = nextLineTokens[k];
+                    }
+
+                    tokens = fixedTokens;
+                }
+
+                correctTokens(tokens);
+
+                int postOfficeIndex =
+                        Integer.parseInt(tokens[POST_OFFICE_INDEX]);
+
+                if (regionResolver.isCorrectPostOffice(postOfficeIndex)) {
+                    tokens[REGION_INDEX] =
+                            regionResolver.getRegion(postOfficeIndex);
+                } else {
+                    tokens[POST_OFFICE_INDEX] =
+                            Integer.toString(defaultPostOfficeNumber);
+                    tokens[REGION_INDEX] =
+                            regionResolver.getRegion(defaultPostOfficeNumber);
+                }
+
+                String changedLine = String.join(DELIMITER,
+                        Arrays.asList(tokens));
+                result.append(changedLine);
+            }
+            result.append(CRLF);
         }
-        result.append(CRLF);
+    }
+
+    private void correctTokens(String[] tokens) {
+        for (int i = 0; i < tokens.length; ++i) {
+            tokens[i] = tokens[i].trim().replaceAll("\\s+", " ");
+        }
     }
 
     public void writeToFile(Path path) throws IOException {
