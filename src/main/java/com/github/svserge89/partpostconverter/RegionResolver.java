@@ -1,4 +1,4 @@
-package com.github.svserge89;
+package com.github.svserge89.partpostconverter;
 
 import com.linuxense.javadbf.DBFReader;
 import com.linuxense.javadbf.DBFRow;
@@ -15,16 +15,18 @@ public class RegionResolver {
 
     private Map<Integer, String> regionMap = new TreeMap<>();
     private Path path;
-    private String defaultRegion;
 
-    public RegionResolver(Path path, String defaultRegion) throws IOException {
+    public RegionResolver(Path path) throws IOException {
         this.path = path;
-        this.defaultRegion = defaultRegion;
         initMap();
     }
 
+    public boolean isCorrectPostOffice(int postOfficeNumber) {
+        return regionMap.containsKey(postOfficeNumber);
+    }
+
     public String getRegion(int postOfficeNumber) {
-        return regionMap.getOrDefault(postOfficeNumber, defaultRegion);
+        return regionMap.get(postOfficeNumber);
     }
 
     private void initMap() throws IOException {

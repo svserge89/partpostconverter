@@ -1,4 +1,4 @@
-package com.github.svserge89;
+package com.github.svserge89.partpostconverter;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,8 +14,8 @@ public class Application {
         Path testFile = Paths.get(TEST_FILE);
         Path outFile = Paths.get(OUT_FILE);
 
-        RegionResolver regionResolver = new RegionResolver(pindxFile, "TEST");
-        FileConverter fileConverter = new FileConverter(testFile, regionResolver);
+        RegionResolver regionResolver = new RegionResolver(pindxFile);
+        FileConverter fileConverter = new FileConverter(testFile, regionResolver, 346480);
         fileConverter.writeToFile(outFile);
     }
 }
