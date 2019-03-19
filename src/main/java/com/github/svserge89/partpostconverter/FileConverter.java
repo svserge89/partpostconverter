@@ -32,7 +32,7 @@ public class FileConverter {
         StringBuilder result = new StringBuilder();
         try {
             lineCorrector(lines, result);
-        } catch (ArrayIndexOutOfBoundsException exception) {
+        } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException exception) {
             throw new IOException(path + " is incorrect file", exception);
         }
         return result.toString();
