@@ -29,8 +29,11 @@ public class FileConverter {
     private String getStringWithRegions() throws IOException {
         List<String> lines = Files.readAllLines(path, CP_866);
         StringBuilder result = new StringBuilder();
-
-        lines.forEach(line -> lineCorrector(line, result));
+        try {
+            lines.forEach(line -> lineCorrector(line, result));
+        } catch (ArrayIndexOutOfBoundsException exception) {
+            throw new IOException(path + " is incorrect file", exception);
+        }
         return result.toString();
     }
 
