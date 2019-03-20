@@ -1,4 +1,8 @@
-package com.github.svserge89.partpostconverter;
+package com.github.svserge89.partpostconverter.corrector;
+
+import com.github.svserge89.partpostconverter.exception.FileCorrectorException;
+import com.github.svserge89.partpostconverter.resolver.RegionResolver;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -7,37 +11,38 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-public class FileConverter {
+public class FileCorrector {
     private static final Charset CP_866 = Charset.forName("cp866");
     private static final int REGION_INDEX = 11;
     private static final int POST_OFFICE_INDEX = 10;
+    private static final int ADDRESS_INDEX = 15;
     private static final int RECIPIENT_LENGTH = 255;
     private static final int RECIPIENT_INDEX = 7;
     private static final String REGEX = "\\|";
     private static final String DELIMITER = "|";
-    private static final String CRLF = "\r\n";
 
-    private Path path;
     private RegionResolver regionResolver;
+    private byte[] bytes;
     private int defaultPostOfficeNumber;
     private int tokensLength = 0;
 
-    public FileConverter(Path path, RegionResolver regionResolver,
+    public FileCorrector(byte[] bytes, RegionResolver regionResolver,
                          int defaultPostOfficeNumber) {
-        this.path = path;
+        this.bytes = bytes;
         this.regionResolver = regionResolver;
         this.defaultPostOfficeNumber = defaultPostOfficeNumber;
     }
 
     private String getStringWithRegions() throws IOException {
-        List<String> lines = Files.readAllLines(path, CP_866);
+        ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+        List<String> lines = IOUtils.readLines(stream, CP_866);
+
+        stream.close();
+
         StringBuilder result = new StringBuilder();
-        try {
-            lineCorrector(lines, result);
-        } catch (ArrayIndexOutOfBoundsException |
-                IllegalArgumentException exception) {
-            throw new IOException(path + " is incorrect file", exception);
-        }
+
+        lineCorrector(lines, result);
+
         return result.toString();
     }
 
@@ -52,15 +57,18 @@ public class FileConverter {
             } else {
                 while (tokens.length < tokensLength) {
                     String nextLine = lines.get(++i);
+
                     while (nextLine.trim().isEmpty()) {
                         nextLine = lines.get(++i);
                     }
+
                     String[] nextLineTokens = nextLine.split(REGEX, -1);
-                    int fixedLineSize =
-                            tokens.length + nextLineTokens.length - 1;
+                    int fixedLineSize = tokens.length + nextLineTokens.length - 1;
+
                     if (fixedLineSize > tokensLength) {
-                        throw new IllegalArgumentException("Can't parse file");
+                        throw new FileCorrectorException("Incorrect line:" + (i - 1));
                     }
+
                     String[] fixedTokens = new String[fixedLineSize];
                     int j;
 
@@ -68,48 +76,42 @@ public class FileConverter {
                         fixedTokens[j] = tokens[j];
                     }
 
-                    fixedTokens[j - 1] = fixedTokens[j - 1] + " " +
-                            nextLineTokens[0];
+                    fixedTokens[j - 1] = fixedTokens[j - 1] + " " + nextLineTokens[0];
 
-                    for (int k = 1; k < nextLineTokens.length &&
-                            j < fixedTokens.length; ++k, ++j) {
+                    for (int k = 1; k < nextLineTokens.length && j < fixedTokens.length;
+                         ++k, ++j) {
                         fixedTokens[j] = nextLineTokens[k];
                     }
 
                     tokens = fixedTokens;
                 }
 
-                correctTokens(tokens);
-                truncateToken(tokens, RECIPIENT_INDEX, RECIPIENT_LENGTH);
+                removeWhiteSpace(tokens, RECIPIENT_INDEX, ADDRESS_INDEX);
+                truncate(tokens, RECIPIENT_INDEX, RECIPIENT_LENGTH);
 
-                int postOfficeIndex =
-                        Integer.parseInt(tokens[POST_OFFICE_INDEX]);
+                int postOfficeIndex = Integer.parseInt(tokens[POST_OFFICE_INDEX]);
 
-                if (regionResolver.isCorrectPostOffice(postOfficeIndex)) {
-                    tokens[REGION_INDEX] =
-                            regionResolver.getRegion(postOfficeIndex);
+                if (regionResolver.numberIsExist(postOfficeIndex)) {
+                    tokens[REGION_INDEX] = regionResolver.getRegion(postOfficeIndex);
                 } else {
-                    tokens[POST_OFFICE_INDEX] =
-                            Integer.toString(defaultPostOfficeNumber);
-                    tokens[REGION_INDEX] =
-                            regionResolver.getRegion(defaultPostOfficeNumber);
+                    tokens[POST_OFFICE_INDEX] = Integer.toString(defaultPostOfficeNumber);
+                    tokens[REGION_INDEX] = regionResolver.getRegion(defaultPostOfficeNumber);
                 }
 
-                String changedLine = String.join(DELIMITER,
-                        Arrays.asList(tokens));
+                String changedLine = String.join(DELIMITER, Arrays.asList(tokens));
                 result.append(changedLine);
             }
-            result.append(CRLF);
+            result.append(IOUtils.LINE_SEPARATOR_WINDOWS);
         }
     }
 
-    private static void correctTokens(String[] tokens) {
-        for (int i = 0; i < tokens.length; ++i) {
-            tokens[i] = tokens[i].trim().replaceAll("\\s+", " ");
+    private static void removeWhiteSpace(String[] tokens, int... index) {
+        for (int i : index) {
+            tokens[i] = tokens[i].trim().replaceAll("\\s\\s+", " ");
         }
     }
 
-    private static void truncateToken(String[] tokens, int index, int maxLength) {
+    private static void truncate(String[] tokens, int index, int maxLength) {
         if (tokens[index].length() > maxLength) {
             tokens[index] = tokens[index].substring(0, maxLength);
         }

@@ -1,5 +1,6 @@
-package com.github.svserge89.partpostconverter;
+package com.github.svserge89.partpostconverter.resolver;
 
+import com.github.svserge89.partpostconverter.exception.RegionResolverException;
 import com.linuxense.javadbf.DBFReader;
 import com.linuxense.javadbf.DBFRow;
 
@@ -16,12 +17,16 @@ public class RegionResolver {
     private Map<Integer, String> regionMap = new TreeMap<>();
     private Path path;
 
-    public RegionResolver(Path path) throws IOException {
+    public RegionResolver(Path path) {
         this.path = path;
-        initMap();
+        try {
+            initMap();
+        } catch (Exception e) {
+            throw new RegionResolverException("Incorrect Post index DBF file", e);
+        }
     }
 
-    public boolean isCorrectPostOffice(int postOfficeNumber) {
+    public boolean numberIsExist(int postOfficeNumber) {
         return regionMap.containsKey(postOfficeNumber);
     }
 
@@ -31,8 +36,10 @@ public class RegionResolver {
 
     private void initMap() throws IOException {
         try (DBFReader reader = new DBFReader(Files.newInputStream(path), CP_866)) {
-            for (DBFRow row = reader.nextRow(); row != null; row = reader.nextRow()) {
-                int postOfficeNumber = Integer.parseInt(row.getString("Index"));
+            for (DBFRow row = reader.nextRow(); row != null;
+                 row = reader.nextRow()) {
+                int postOfficeNumber =
+                        Integer.parseInt(row.getString("Index"));
                 String region = row.getString("Region");
                 regionMap.put(postOfficeNumber, region);
             }

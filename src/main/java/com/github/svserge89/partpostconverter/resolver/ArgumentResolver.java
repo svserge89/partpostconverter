@@ -1,4 +1,6 @@
-package com.github.svserge89.partpostconverter;
+package com.github.svserge89.partpostconverter.resolver;
+
+import com.github.svserge89.partpostconverter.exception.ArgumentResolverException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +11,11 @@ public class ArgumentResolver {
 
     public ArgumentResolver(String[] args) {
         this.args = args;
-        parseArguments();
+        try {
+            parseArguments();
+        } catch (Exception e) {
+            throw new ArgumentResolverException("Incorrect commandline arguments", e);
+        }
     }
 
     private void parseArguments() {
@@ -17,8 +23,7 @@ public class ArgumentResolver {
             if (args[i].startsWith("-")) {
                 String key = args[i].substring(1);
                 if (args[i + 1].startsWith("-")) {
-                    throw new IllegalArgumentException(args[i + 1] +
-                            " is incorrect argument");
+                    throw new IllegalArgumentException(args[i + 1] + " is incorrect argument");
                 } else {
                     argumentsMap.put(key, args[i + 1]);
                     ++i;
