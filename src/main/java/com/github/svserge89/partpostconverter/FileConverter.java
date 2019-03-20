@@ -11,6 +11,8 @@ public class FileConverter {
     private static final Charset CP_866 = Charset.forName("cp866");
     private static final int REGION_INDEX = 11;
     private static final int POST_OFFICE_INDEX = 10;
+    private static final int RECIPIENT_LENGTH = 255;
+    private static final int RECIPIENT_INDEX = 7;
     private static final String REGEX = "\\|";
     private static final String DELIMITER = "|";
     private static final String CRLF = "\r\n";
@@ -66,7 +68,8 @@ public class FileConverter {
                         fixedTokens[j] = tokens[j];
                     }
 
-                    fixedTokens[j - 1] = fixedTokens[j - 1] + " " + nextLineTokens[0];
+                    fixedTokens[j - 1] = fixedTokens[j - 1] + " " +
+                            nextLineTokens[0];
 
                     for (int k = 1; k < nextLineTokens.length &&
                             j < fixedTokens.length; ++k, ++j) {
@@ -77,6 +80,7 @@ public class FileConverter {
                 }
 
                 correctTokens(tokens);
+                truncateToken(tokens, RECIPIENT_INDEX, RECIPIENT_LENGTH);
 
                 int postOfficeIndex =
                         Integer.parseInt(tokens[POST_OFFICE_INDEX]);
@@ -99,9 +103,15 @@ public class FileConverter {
         }
     }
 
-    private void correctTokens(String[] tokens) {
+    private static void correctTokens(String[] tokens) {
         for (int i = 0; i < tokens.length; ++i) {
             tokens[i] = tokens[i].trim().replaceAll("\\s+", " ");
+        }
+    }
+
+    private static void truncateToken(String[] tokens, int index, int maxLength) {
+        if (tokens[index].length() > maxLength) {
+            tokens[index] = tokens[index].substring(0, maxLength);
         }
     }
 
