@@ -86,7 +86,7 @@ public class FileCorrector {
                     tokens = fixedTokens;
                 }
 
-                removeWhiteSpace(tokens, RECIPIENT_INDEX, ADDRESS_INDEX);
+                removeRedundantWhiteSpaceAndCommas(tokens, RECIPIENT_INDEX, ADDRESS_INDEX);
                 truncate(tokens, RECIPIENT_INDEX, RECIPIENT_LENGTH);
 
                 int postOfficeIndex = Integer.parseInt(tokens[POST_OFFICE_INDEX]);
@@ -105,9 +105,12 @@ public class FileCorrector {
         }
     }
 
-    private static void removeWhiteSpace(String[] tokens, int... index) {
+    private static void removeRedundantWhiteSpaceAndCommas(String[] tokens, int... index) {
         for (int i : index) {
-            tokens[i] = tokens[i].trim().replaceAll("\\s\\s+", " ");
+            tokens[i] = tokens[i].trim()
+                    .replaceAll("\\s\\s+", " ")
+                    .replaceAll(",\\s*,(\\s*,)*", ",")
+                    .replaceAll(",$", "");
         }
     }
 
