@@ -109,8 +109,8 @@ public class FileCorrector {
         for (int i : index) {
             tokens[i] = tokens[i].trim()
                     .replaceAll("\\s\\s+", " ")
-                    .replaceAll(",\\s*,(\\s*,)*", ",")
-                    .replaceAll(",$", "");
+                    .replaceAll(",\\s?,(\\s?,)*", ",")
+                    .replaceAll("(\\s?,$)|(^,\\s?)", "");
         }
     }
 
