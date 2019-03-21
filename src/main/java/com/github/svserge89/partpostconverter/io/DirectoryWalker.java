@@ -52,7 +52,7 @@ public class DirectoryWalker {
         }
 
         if (archiveList.isEmpty()) {
-            throw new IOException(inputDirectory + " is not contain zip files");
+            throw new DirectoryWalkerException(inputDirectory + " is not contain zip files");
         }
     }
 

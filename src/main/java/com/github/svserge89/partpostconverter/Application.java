@@ -22,16 +22,13 @@ public class Application {
         try {
             ArgumentResolver argumentResolver = new ArgumentResolver(args);
 
-            if (!checkMainArguments(argumentResolver)) {
-                throw new ArgumentResolverException("Important commandline arguments not found");
-            }
+            checkMainArguments(argumentResolver);
 
             Path inputDirectory = Paths.get(argumentResolver.getValue(INPUT_DIR_PARAM));
             Path outputDirectory = Paths.get(argumentResolver.getValue(OUTPUT_DIR_PARAM));
             Path dbfFile = Paths.get(argumentResolver.getValue(POST_INDEX_FILE_PARAM));
 
-            int defaultPostOfficeNumber =
-                    Integer.parseInt(argumentResolver.getValue(POST_OFFICE_NUM_PARAM));
+            int defaultPostOfficeNumber = getPostOfficeNumber(argumentResolver);
 
             DirectoryWalker directoryWalker = new DirectoryWalker(inputDirectory, outputDirectory);
 
@@ -48,11 +45,13 @@ public class Application {
         }
     }
 
-    private static boolean checkMainArguments(ArgumentResolver resolver) {
-        return resolver.containsArgument(INPUT_DIR_PARAM) &
+    private static void checkMainArguments(ArgumentResolver resolver) {
+        if (!(resolver.containsArgument(INPUT_DIR_PARAM) &
                 resolver.containsArgument(OUTPUT_DIR_PARAM) &
                 resolver.containsArgument(POST_OFFICE_NUM_PARAM) &
-                resolver.containsArgument(POST_INDEX_FILE_PARAM);
+                resolver.containsArgument(POST_INDEX_FILE_PARAM))) {
+            throw new ArgumentResolverException("Important commandline arguments not found");
+        }
     }
 
     private static void showUsage() {
@@ -71,5 +70,14 @@ public class Application {
             throwable = throwable.getCause();
         } while (throwable != null);
         System.err.println(message);
+    }
+
+    private static int getPostOfficeNumber(ArgumentResolver resolver) {
+        try {
+            return Integer.parseInt(resolver.getValue(POST_OFFICE_NUM_PARAM));
+        } catch (Exception e) {
+            throw new ArgumentResolverException(
+                    "Incorrect value in " + POST_OFFICE_NUM_PARAM, e);
+        }
     }
 }
