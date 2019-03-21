@@ -16,7 +16,7 @@ public class FileCorrector {
     private static final int REGION_INDEX = 11;
     private static final int POST_OFFICE_INDEX = 10;
     private static final int ADDRESS_INDEX = 15;
-    private static final int RECIPIENT_LENGTH = 255;
+    private static final int RECIPIENT_LENGTH = 60;
     private static final int RECIPIENT_INDEX = 7;
     private static final String REGEX = "\\|";
     private static final String DELIMITER = "|";
@@ -87,7 +87,7 @@ public class FileCorrector {
                 }
 
                 removeRedundantWhiteSpaceAndCommas(tokens, RECIPIENT_INDEX, ADDRESS_INDEX);
-                truncate(tokens, RECIPIENT_INDEX, RECIPIENT_LENGTH);
+                truncateRecipient(tokens);
 
                 int postOfficeIndex = Integer.parseInt(tokens[POST_OFFICE_INDEX]);
 
@@ -99,6 +99,7 @@ public class FileCorrector {
                 }
 
                 String changedLine = String.join(DELIMITER, Arrays.asList(tokens));
+
                 result.append(changedLine);
             }
             result.append(IOUtils.LINE_SEPARATOR_WINDOWS);
@@ -114,9 +115,9 @@ public class FileCorrector {
         }
     }
 
-    private static void truncate(String[] tokens, int index, int maxLength) {
-        if (tokens[index].length() > maxLength) {
-            tokens[index] = tokens[index].substring(0, maxLength);
+    private static void truncateRecipient(String[] tokens) {
+        if (tokens[RECIPIENT_INDEX].length() > RECIPIENT_LENGTH) {
+            tokens[RECIPIENT_INDEX] = tokens[RECIPIENT_INDEX].substring(0, RECIPIENT_LENGTH);
         }
     }
 
