@@ -20,6 +20,7 @@ public class FileCorrector {
     private static final int RECIPIENT_INDEX = 7;
     private static final String REGEX = "\\|";
     private static final String DELIMITER = "|";
+    private static final String POST_OFFICE_NUMBER_PATTERN = "^\\d{6}$";
 
     private RegionResolver regionResolver;
     private byte[] bytes;
@@ -88,11 +89,12 @@ public class FileCorrector {
 
                 removeRedundantWhiteSpaceAndCommas(tokens, RECIPIENT_INDEX, ADDRESS_INDEX);
                 truncateRecipient(tokens);
+                fixPostOfficeNumber(tokens, Integer.toString(defaultPostOfficeNumber));
 
-                int postOfficeIndex = Integer.parseInt(tokens[POST_OFFICE_INDEX]);
+                int postOfficeNumber = Integer.parseInt(tokens[POST_OFFICE_INDEX]);
 
-                if (regionResolver.numberIsExist(postOfficeIndex)) {
-                    tokens[REGION_INDEX] = regionResolver.getRegion(postOfficeIndex);
+                if (regionResolver.numberIsExist(postOfficeNumber)) {
+                    tokens[REGION_INDEX] = regionResolver.getRegion(postOfficeNumber);
                 } else {
                     tokens[POST_OFFICE_INDEX] = Integer.toString(defaultPostOfficeNumber);
                     tokens[REGION_INDEX] = regionResolver.getRegion(defaultPostOfficeNumber);
@@ -118,6 +120,19 @@ public class FileCorrector {
     private static void truncateRecipient(String[] tokens) {
         if (tokens[RECIPIENT_INDEX].length() > RECIPIENT_LENGTH) {
             tokens[RECIPIENT_INDEX] = tokens[RECIPIENT_INDEX].substring(0, RECIPIENT_LENGTH);
+        }
+    }
+
+    private static void fixPostOfficeNumber(String[] tokens, String defaultPostOffice) {
+        String postOffice = tokens[POST_OFFICE_INDEX];
+
+        if (!postOffice.matches(POST_OFFICE_NUMBER_PATTERN)) {
+            postOffice = postOffice.trim().replaceAll("\\D+", "");
+            if (!postOffice.matches(POST_OFFICE_NUMBER_PATTERN)) {
+                tokens[POST_OFFICE_INDEX] = defaultPostOffice;
+            } else {
+                tokens[POST_OFFICE_INDEX] = postOffice;
+            }
         }
     }
 
