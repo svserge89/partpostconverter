@@ -1,11 +1,15 @@
 package com.github.svserge89.partpostconverter.resolver;
 
 import com.github.svserge89.partpostconverter.exception.ArgumentResolverException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ArgumentResolver {
+    private static final Logger log = LoggerFactory.getLogger(ArgumentResolver.class);
+
     private String[] args;
     private Map<String, String> argumentsMap = new HashMap<>();
 
@@ -14,6 +18,8 @@ public class ArgumentResolver {
         try {
             parseArguments();
         } catch (Exception e) {
+            log.error("Incorrect commandline arguments", e);
+
             throw new ArgumentResolverException("Incorrect commandline arguments", e);
         }
     }
