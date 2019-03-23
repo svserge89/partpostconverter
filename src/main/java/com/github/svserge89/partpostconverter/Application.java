@@ -49,7 +49,7 @@ public class Application {
             showUsage();
             System.exit(1);
         }
-        log.info("Application closed without errors.");
+        log.info("Application closed without errors");
     }
 
     private static void showUsage() {
@@ -61,7 +61,7 @@ public class Application {
     }
 
     private static void showError(Throwable throwable) {
-        log.error("Application closed with error", throwable);
+        log.error("Application closed with exception", throwable);
 
         System.err.println("Some errors occurred. Details in the log.");
     }

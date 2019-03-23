@@ -4,6 +4,7 @@ import com.github.svserge89.partpostconverter.exception.PropertyResolverExceptio
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
@@ -11,11 +12,13 @@ import java.util.Properties;
 public class PropertyResolver {
     private static final Logger log = LoggerFactory.getLogger(PropertyResolver.class);
 
+    private static final String DEFAULT_CONFIG = "default.properties";
+
     private Properties properties = new Properties();
 
     public PropertyResolver() {
         try {
-            properties.load(ClassLoader.getSystemResourceAsStream("default.properties"));
+            properties.load(ClassLoader.getSystemResourceAsStream(DEFAULT_CONFIG));
         } catch (Exception e) {
             log.error("Can't load default properties", e);
 
@@ -29,8 +32,8 @@ public class PropertyResolver {
         Properties defaultProperties = properties;
         properties = new Properties(defaultProperties);
 
-        try {
-            properties.load(Files.newInputStream(path));
+        try (InputStream inputStream = Files.newInputStream(path)){
+            properties.load(inputStream);
 
             log.info("Using property file \"{}\"", path.getFileName());
         } catch (Exception e) {

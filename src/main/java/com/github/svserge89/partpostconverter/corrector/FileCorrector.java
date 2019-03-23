@@ -28,6 +28,7 @@ public class FileCorrector {
     private static final String WHITESPACES_REGEX = "\\s\\s+";
     private static final String COMMAS_REGEX = ",\\s?,(\\s?,)*";
     private static final String START_AND_END_COMMAS_REGEX = "(\\s?,$)|(^,\\s?)";
+    private static final String NON_DIGIT_PATTERN = "\\D+";
 
     public static final String POST_OFFICE_NUMBER_PATTERN = "^\\d{6}$";
 
@@ -157,8 +158,8 @@ public class FileCorrector {
 
     private static void truncateRecipient(String[] tokens) {
         if (tokens[RECIPIENT_INDEX].length() > RECIPIENT_LENGTH) {
-            log.warn("\"{}\" - recipient \"{}\" field length > 60 characters",
-                    tokens[BARCODE_INDEX], tokens[RECIPIENT_INDEX]);
+            log.warn("\"{}\" - recipient \"{}\" field length > {} characters",
+                    tokens[BARCODE_INDEX], tokens[RECIPIENT_INDEX], RECIPIENT_LENGTH);
 
             tokens[RECIPIENT_INDEX] = tokens[RECIPIENT_INDEX].substring(0, RECIPIENT_LENGTH);
 
@@ -174,7 +175,7 @@ public class FileCorrector {
             log.warn("\"{}\" - index \"{}\" is incorrect", tokens[BARCODE_INDEX],
                     tokens[POST_OFFICE_INDEX]);
 
-            postOffice = postOffice.trim().replaceAll("\\D+", "");
+            postOffice = postOffice.trim().replaceAll(NON_DIGIT_PATTERN, "");
             if (!postOffice.matches(POST_OFFICE_NUMBER_PATTERN)) {
                 tokens[POST_OFFICE_INDEX] = defaultPostOffice;
 

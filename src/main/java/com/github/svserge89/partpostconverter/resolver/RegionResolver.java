@@ -17,6 +17,9 @@ public class RegionResolver {
     private static final Logger log = LoggerFactory.getLogger(RegionResolver.class);
     private static final Charset CP_866 = Charset.forName("cp866");
 
+    private static final String INDEX_COLUMN = "Index";
+    private static final String REGION_COLUMN = "Region";
+
     private Map<Integer, String> regionMap = new TreeMap<>();
     private Path path;
 
@@ -46,8 +49,8 @@ public class RegionResolver {
             for (DBFRow row = reader.nextRow(); row != null;
                  row = reader.nextRow()) {
                 int postOfficeNumber =
-                        Integer.parseInt(row.getString("Index"));
-                String region = row.getString("Region");
+                        Integer.parseInt(row.getString(INDEX_COLUMN));
+                String region = row.getString(REGION_COLUMN);
                 regionMap.put(postOfficeNumber, region);
             }
         }

@@ -63,7 +63,7 @@ public class DirectoryWalker {
         }
 
         if (archiveList.isEmpty()) {
-            log.error("\"{}\" - is not contain zip files");
+            log.error("\"{}\" - is not contain zip files", inputDirectory);
 
             throw new DirectoryWalkerException(inputDirectory + " is not contain zip files");
         }
