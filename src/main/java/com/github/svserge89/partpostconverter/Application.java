@@ -23,6 +23,7 @@ public class Application {
     private static final String CONFIG_FILE_PARAM = "config-file";
 
     public static void main(String[] args) throws IOException {
+        log.info("Start application");
         try {
             ArgumentResolver argumentResolver = new ArgumentResolver(args);
 
@@ -48,6 +49,7 @@ public class Application {
             showUsage();
             System.exit(1);
         }
+        log.info("Application closed without errors.");
     }
 
     private static void showUsage() {
@@ -59,9 +61,9 @@ public class Application {
     }
 
     private static void showError(Throwable throwable) {
-        log.error("Exit failure", throwable);
+        log.error("Application closed with error", throwable);
 
-        System.out.println("Exit failure. More information in logs.");
+        System.err.println("Some errors occurred. Details in the log.");
     }
 
     private static int getPostOfficeNumber(ArgumentResolver argumentResolver,
